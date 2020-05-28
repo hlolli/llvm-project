@@ -693,7 +693,6 @@ WASM_EXPORT __wasi_errno_t fd_write(__wasi_fd_t fd, const __wasi_ciovec_t *iovs,
   }
   Node* node = GetNode(fdesc->inode);
   switch (node->stat.st_dev) {
-    case kStdinDevice:
     case kStdoutDevice:
     case kStderrDevice:
       return host_write(node->stat.st_dev, iovs, iovs_len, nwritten);
