@@ -21,6 +21,8 @@
 extern void memfs_log(const void* buf, size_t buf_size);
 extern __wasi_errno_t host_write(__wasi_fd_t fd, const __wasi_ciovec_t *iovs,
                                  size_t iovs_len, size_t *nwritten);
+extern __wasi_errno_t host_read(__wasi_fd_t fd, const __wasi_iovec_t *iovs,
+                                 size_t iovs_len, size_t *nread);
 extern void copy_out(void* their_dest, const void* my_src, size_t size);
 extern void copy_in(void* my_dest, const void* their_src, size_t size);
 
@@ -641,6 +643,18 @@ WASM_EXPORT __wasi_errno_t fd_read(__wasi_fd_t fd, const __wasi_iovec_t *iovs,
     return TRACE_ERRNO(__WASI_EBADF);
   }
   Node* node = GetNode(fdesc->inode);
+  switch (node->stat.st_dev) {
+    case kStdinDevice:
+      return host_read(node->stat.st_dev, iovs, iovs_len, nread);
+
+    case kMemDevice:
+      // Handled below.
+      break;
+
+    default:
+      ASSERT(false);
+      return __WASI_ENODEV;
+  }
   __wasi_iovec_t iovs_copy[iovs_len];
   copy_in(iovs_copy, iovs, sizeof(*iovs) * iovs_len);
   size_t total_len = ReadIovec(node, iovs_copy, iovs_len, fdesc->offset);
@@ -693,7 +707,6 @@ WASM_EXPORT __wasi_errno_t fd_write(__wasi_fd_t fd, const __wasi_ciovec_t *iovs,
   }
   Node* node = GetNode(fdesc->inode);
   switch (node->stat.st_dev) {
-    case kStdinDevice:
     case kStdoutDevice:
     case kStderrDevice:
       return host_write(node->stat.st_dev, iovs, iovs_len, nwritten);
