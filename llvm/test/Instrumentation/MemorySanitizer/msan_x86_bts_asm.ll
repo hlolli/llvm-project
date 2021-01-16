@@ -92,10 +92,9 @@ if.else:                                          ; preds = %entry
 ; CHECK: [[MSPROP:%.*]] = trunc i8 [[MSLD]] to i1
 
 ; Is the shadow poisoned?
-; CHECK: [[MSCMP:%.*]] = icmp ne i1 [[MSPROP]], false
-; CHECK: br i1 [[MSCMP]], label %[[IFTRUE:.*]], label {{.*}}
+; CHECK: br i1 [[MSPROP]], label %[[IFTRUE:.*]], label {{.*}}
 
 ; If yes, raise a warning.
-; CHECK: <label>:[[IFTRUE]]
+; CHECK: [[IFTRUE]]:
 ; CHECK: call void @__msan_warning
 

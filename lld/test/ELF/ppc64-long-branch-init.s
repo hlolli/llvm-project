@@ -11,10 +11,13 @@
 ## is not foolproof but good enough to not break in practice.
 
 # CHECK: Disassembly of section .init:
-# CHECK-LABEL: _init:
-# CHECK:         blr
 # CHECK-EMPTY:
-# CHECK-LABEL: __long_branch_foo:
+# CHECK-LABEL: <_init>:
+# CHECK:         blr
+# CHECK-NEXT:    trap
+# CHECK-NEXT:    trap
+# CHECK-EMPTY:
+# CHECK-LABEL: <__long_branch_foo>:
 
 .globl foo
 foo:

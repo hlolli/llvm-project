@@ -2,8 +2,6 @@
 
 // FIXME: Make sure warnings are produced based on printf format strings.
 
-// expected-no-diagnostics
-
 kernel void format_string_warnings(__constant char* arg) {
 
   printf("%d", arg);

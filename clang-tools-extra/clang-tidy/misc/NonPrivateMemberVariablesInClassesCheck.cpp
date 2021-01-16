@@ -1,9 +1,8 @@
 //===--- NonPrivateMemberVariablesInClassesCheck.cpp - clang-tidy ---------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -49,11 +48,16 @@ NonPrivateMemberVariablesInClassesCheck::
       IgnorePublicMemberVariables(
           Options.get("IgnorePublicMemberVariables", false)) {}
 
+void NonPrivateMemberVariablesInClassesCheck::storeOptions(
+    ClangTidyOptions::OptionMap &Opts) {
+  Options.store(Opts, "IgnoreClassesWithAllMemberVariablesBeingPublic",
+                IgnoreClassesWithAllMemberVariablesBeingPublic);
+  Options.store(Opts, "IgnorePublicMemberVariables",
+                IgnorePublicMemberVariables);
+}
+
 void NonPrivateMemberVariablesInClassesCheck::registerMatchers(
     MatchFinder *Finder) {
-  if (!getLangOpts().CPlusPlus)
-    return;
-
   // We can ignore structs/classes with all member variables being public.
   auto ShouldIgnoreRecord =
       allOf(boolean(IgnoreClassesWithAllMemberVariablesBeingPublic),
@@ -63,8 +67,9 @@ void NonPrivateMemberVariablesInClassesCheck::registerMatchers(
   // If we are ok with public fields, then we only want to complain about
   // protected fields, else we want to complain about all non-private fields.
   // We can ignore public member variables in structs/classes, in unions.
-  auto InterestingField = fieldDecl(
-      IgnorePublicMemberVariables ? isProtected() : unless(isPrivate()));
+  auto InterestingField = IgnorePublicMemberVariables
+                              ? fieldDecl(isProtected())
+                              : fieldDecl(unless(isPrivate()));
 
   // We only want the records that not only contain the mutable data (non-static
   // member variables), but also have some logic (non-static, non-implicit

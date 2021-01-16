@@ -400,17 +400,16 @@ define void @test39() {
 define void @test40(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test40:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
-; PPC64LE-NEXT:    b .LBB40_2
-; PPC64LE-NEXT:    .p2align 5
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:  .LBB40_1:
-; PPC64LE-NEXT:    stbcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB40_2:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB40_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB40_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stbcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB40_1
+; PPC64LE-NEXT:  .LBB40_3:
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i8* %ptr, i8 %cmp, i8 %val monotonic monotonic
@@ -420,7 +419,7 @@ define void @test40(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test41(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test41:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:  .LBB41_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -442,7 +441,7 @@ define void @test41(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test42(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test42:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:  .LBB42_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -464,18 +463,17 @@ define void @test42(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test43(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test43:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB43_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB43_1:
-; PPC64LE-NEXT:    stbcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB43_2:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB43_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB43_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stbcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB43_1
+; PPC64LE-NEXT:  .LBB43_3:
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i8* %ptr, i8 %cmp, i8 %val release monotonic
@@ -485,18 +483,17 @@ define void @test43(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test44(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test44:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB44_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB44_1:
-; PPC64LE-NEXT:    stbcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB44_2:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB44_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB44_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stbcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB44_1
+; PPC64LE-NEXT:  .LBB44_3:
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i8* %ptr, i8 %cmp, i8 %val release acquire
@@ -506,7 +503,7 @@ define void @test44(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test45(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test45:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB45_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -529,7 +526,7 @@ define void @test45(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test46(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test46:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB46_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -552,7 +549,7 @@ define void @test46(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test47(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test47:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB47_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -575,7 +572,7 @@ define void @test47(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test48(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test48:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB48_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -598,7 +595,7 @@ define void @test48(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test49(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test49:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB49_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -621,17 +618,16 @@ define void @test49(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test50(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test50:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
-; PPC64LE-NEXT:    b .LBB50_2
-; PPC64LE-NEXT:    .p2align 5
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:  .LBB50_1:
-; PPC64LE-NEXT:    sthcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB50_2:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB50_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB50_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    sthcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB50_1
+; PPC64LE-NEXT:  .LBB50_3:
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i16* %ptr, i16 %cmp, i16 %val monotonic monotonic
@@ -641,7 +637,7 @@ define void @test50(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test51(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test51:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:  .LBB51_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -663,7 +659,7 @@ define void @test51(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test52(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test52:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:  .LBB52_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -685,18 +681,17 @@ define void @test52(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test53(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test53:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB53_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB53_1:
-; PPC64LE-NEXT:    sthcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB53_2:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB53_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB53_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    sthcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB53_1
+; PPC64LE-NEXT:  .LBB53_3:
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i16* %ptr, i16 %cmp, i16 %val release monotonic
@@ -706,18 +701,17 @@ define void @test53(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test54(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test54:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB54_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB54_1:
-; PPC64LE-NEXT:    sthcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB54_2:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB54_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB54_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    sthcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB54_1
+; PPC64LE-NEXT:  .LBB54_3:
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i16* %ptr, i16 %cmp, i16 %val release acquire
@@ -727,7 +721,7 @@ define void @test54(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test55(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test55:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB55_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -750,7 +744,7 @@ define void @test55(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test56(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test56:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB56_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -773,7 +767,7 @@ define void @test56(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test57(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test57:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB57_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -796,7 +790,7 @@ define void @test57(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test58(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test58:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB58_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -819,7 +813,7 @@ define void @test58(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test59(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test59:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB59_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -842,16 +836,15 @@ define void @test59(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test60(i32* %ptr, i32 %cmp, i32 %val) {
 ; PPC64LE-LABEL: test60:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    b .LBB60_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB60_1:
-; PPC64LE-NEXT:    stwcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB60_2:
 ; PPC64LE-NEXT:    lwarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB60_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB60_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stwcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB60_1
+; PPC64LE-NEXT:  .LBB60_3:
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i32* %ptr, i32 %cmp, i32 %val monotonic monotonic
@@ -904,16 +897,15 @@ define void @test63(i32* %ptr, i32 %cmp, i32 %val) {
 ; PPC64LE-LABEL: test63:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB63_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB63_1:
-; PPC64LE-NEXT:    stwcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB63_2:
 ; PPC64LE-NEXT:    lwarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB63_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB63_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stwcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB63_1
+; PPC64LE-NEXT:  .LBB63_3:
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i32* %ptr, i32 %cmp, i32 %val release monotonic
@@ -924,16 +916,15 @@ define void @test64(i32* %ptr, i32 %cmp, i32 %val) {
 ; PPC64LE-LABEL: test64:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB64_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB64_1:
-; PPC64LE-NEXT:    stwcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB64_2:
 ; PPC64LE-NEXT:    lwarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB64_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB64_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stwcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB64_1
+; PPC64LE-NEXT:  .LBB64_3:
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i32* %ptr, i32 %cmp, i32 %val release acquire
@@ -1053,16 +1044,15 @@ define void @test69(i32* %ptr, i32 %cmp, i32 %val) {
 define void @test70(i64* %ptr, i64 %cmp, i64 %val) {
 ; PPC64LE-LABEL: test70:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    b .LBB70_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB70_1:
-; PPC64LE-NEXT:    stdcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB70_2:
 ; PPC64LE-NEXT:    ldarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpd 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB70_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB70_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stdcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB70_1
+; PPC64LE-NEXT:  .LBB70_3:
 ; PPC64LE-NEXT:    stdcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i64* %ptr, i64 %cmp, i64 %val monotonic monotonic
@@ -1115,16 +1105,15 @@ define void @test73(i64* %ptr, i64 %cmp, i64 %val) {
 ; PPC64LE-LABEL: test73:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB73_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB73_1:
-; PPC64LE-NEXT:    stdcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB73_2:
 ; PPC64LE-NEXT:    ldarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpd 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB73_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB73_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stdcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB73_1
+; PPC64LE-NEXT:  .LBB73_3:
 ; PPC64LE-NEXT:    stdcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i64* %ptr, i64 %cmp, i64 %val release monotonic
@@ -1135,16 +1124,15 @@ define void @test74(i64* %ptr, i64 %cmp, i64 %val) {
 ; PPC64LE-LABEL: test74:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB74_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB74_1:
-; PPC64LE-NEXT:    stdcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB74_2:
 ; PPC64LE-NEXT:    ldarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpd 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB74_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB74_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stdcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB74_1
+; PPC64LE-NEXT:  .LBB74_3:
 ; PPC64LE-NEXT:    stdcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i64* %ptr, i64 %cmp, i64 %val release acquire
@@ -1264,17 +1252,16 @@ define void @test79(i64* %ptr, i64 %cmp, i64 %val) {
 define void @test80(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test80:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
-; PPC64LE-NEXT:    b .LBB80_2
-; PPC64LE-NEXT:    .p2align 5
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:  .LBB80_1:
-; PPC64LE-NEXT:    stbcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB80_2:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB80_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB80_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stbcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB80_1
+; PPC64LE-NEXT:  .LBB80_3:
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i8* %ptr, i8 %cmp, i8 %val syncscope("singlethread") monotonic monotonic
@@ -1284,7 +1271,7 @@ define void @test80(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test81(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test81:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:  .LBB81_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -1306,7 +1293,7 @@ define void @test81(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test82(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test82:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:  .LBB82_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -1328,18 +1315,17 @@ define void @test82(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test83(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test83:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB83_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB83_1:
-; PPC64LE-NEXT:    stbcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB83_2:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB83_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB83_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stbcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB83_1
+; PPC64LE-NEXT:  .LBB83_3:
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i8* %ptr, i8 %cmp, i8 %val syncscope("singlethread") release monotonic
@@ -1349,18 +1335,17 @@ define void @test83(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test84(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test84:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB84_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB84_1:
-; PPC64LE-NEXT:    stbcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB84_2:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB84_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB84_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stbcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB84_1
+; PPC64LE-NEXT:  .LBB84_3:
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i8* %ptr, i8 %cmp, i8 %val syncscope("singlethread") release acquire
@@ -1370,7 +1355,7 @@ define void @test84(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test85(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test85:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB85_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -1393,7 +1378,7 @@ define void @test85(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test86(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test86:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB86_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -1416,7 +1401,7 @@ define void @test86(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test87(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test87:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB87_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -1439,7 +1424,7 @@ define void @test87(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test88(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test88:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB88_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -1462,7 +1447,7 @@ define void @test88(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test89(i8* %ptr, i8 %cmp, i8 %val) {
 ; PPC64LE-LABEL: test89:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 24, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 24
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB89_1:
 ; PPC64LE-NEXT:    lbarx 6, 0, 3
@@ -1485,17 +1470,16 @@ define void @test89(i8* %ptr, i8 %cmp, i8 %val) {
 define void @test90(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test90:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
-; PPC64LE-NEXT:    b .LBB90_2
-; PPC64LE-NEXT:    .p2align 5
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:  .LBB90_1:
-; PPC64LE-NEXT:    sthcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB90_2:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB90_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB90_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    sthcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB90_1
+; PPC64LE-NEXT:  .LBB90_3:
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i16* %ptr, i16 %cmp, i16 %val syncscope("singlethread") monotonic monotonic
@@ -1505,7 +1489,7 @@ define void @test90(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test91(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test91:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:  .LBB91_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -1527,7 +1511,7 @@ define void @test91(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test92(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test92:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:  .LBB92_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
@@ -1549,18 +1533,17 @@ define void @test92(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test93(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test93:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB93_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB93_1:
-; PPC64LE-NEXT:    sthcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB93_2:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB93_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB93_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    sthcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB93_1
+; PPC64LE-NEXT:  .LBB93_3:
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i16* %ptr, i16 %cmp, i16 %val syncscope("singlethread") release monotonic
@@ -1570,18 +1553,17 @@ define void @test93(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test94(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test94:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB94_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB94_1:
-; PPC64LE-NEXT:    sthcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB94_2:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB94_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB94_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    sthcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB94_1
+; PPC64LE-NEXT:  .LBB94_3:
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i16* %ptr, i16 %cmp, i16 %val syncscope("singlethread") release acquire
@@ -1591,7 +1573,7 @@ define void @test94(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test95(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test95:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB95_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -1614,7 +1596,7 @@ define void @test95(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test96(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test96:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB96_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -1637,7 +1619,7 @@ define void @test96(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test97(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test97:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB97_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -1660,7 +1642,7 @@ define void @test97(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test98(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test98:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB98_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -1683,7 +1665,7 @@ define void @test98(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test99(i16* %ptr, i16 %cmp, i16 %val) {
 ; PPC64LE-LABEL: test99:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    rlwinm 4, 4, 0, 16, 31
+; PPC64LE-NEXT:    clrlwi 4, 4, 16
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB99_1:
 ; PPC64LE-NEXT:    lharx 6, 0, 3
@@ -1706,16 +1688,15 @@ define void @test99(i16* %ptr, i16 %cmp, i16 %val) {
 define void @test100(i32* %ptr, i32 %cmp, i32 %val) {
 ; PPC64LE-LABEL: test100:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    b .LBB100_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB100_1:
-; PPC64LE-NEXT:    stwcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB100_2:
 ; PPC64LE-NEXT:    lwarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB100_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB100_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stwcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB100_1
+; PPC64LE-NEXT:  .LBB100_3:
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i32* %ptr, i32 %cmp, i32 %val syncscope("singlethread") monotonic monotonic
@@ -1768,16 +1749,15 @@ define void @test103(i32* %ptr, i32 %cmp, i32 %val) {
 ; PPC64LE-LABEL: test103:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB103_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB103_1:
-; PPC64LE-NEXT:    stwcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB103_2:
 ; PPC64LE-NEXT:    lwarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB103_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB103_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stwcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB103_1
+; PPC64LE-NEXT:  .LBB103_3:
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i32* %ptr, i32 %cmp, i32 %val syncscope("singlethread") release monotonic
@@ -1788,16 +1768,15 @@ define void @test104(i32* %ptr, i32 %cmp, i32 %val) {
 ; PPC64LE-LABEL: test104:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB104_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB104_1:
-; PPC64LE-NEXT:    stwcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB104_2:
 ; PPC64LE-NEXT:    lwarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpw 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB104_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB104_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stwcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB104_1
+; PPC64LE-NEXT:  .LBB104_3:
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i32* %ptr, i32 %cmp, i32 %val syncscope("singlethread") release acquire
@@ -1917,16 +1896,15 @@ define void @test109(i32* %ptr, i32 %cmp, i32 %val) {
 define void @test110(i64* %ptr, i64 %cmp, i64 %val) {
 ; PPC64LE-LABEL: test110:
 ; PPC64LE:       # %bb.0:
-; PPC64LE-NEXT:    b .LBB110_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB110_1:
-; PPC64LE-NEXT:    stdcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB110_2:
 ; PPC64LE-NEXT:    ldarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpd 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB110_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB110_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stdcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB110_1
+; PPC64LE-NEXT:  .LBB110_3:
 ; PPC64LE-NEXT:    stdcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i64* %ptr, i64 %cmp, i64 %val syncscope("singlethread") monotonic monotonic
@@ -1979,16 +1957,15 @@ define void @test113(i64* %ptr, i64 %cmp, i64 %val) {
 ; PPC64LE-LABEL: test113:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB113_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB113_1:
-; PPC64LE-NEXT:    stdcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB113_2:
 ; PPC64LE-NEXT:    ldarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpd 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB113_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB113_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stdcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB113_1
+; PPC64LE-NEXT:  .LBB113_3:
 ; PPC64LE-NEXT:    stdcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i64* %ptr, i64 %cmp, i64 %val syncscope("singlethread") release monotonic
@@ -1999,16 +1976,15 @@ define void @test114(i64* %ptr, i64 %cmp, i64 %val) {
 ; PPC64LE-LABEL: test114:
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:    lwsync
-; PPC64LE-NEXT:    b .LBB114_2
-; PPC64LE-NEXT:    .p2align 5
 ; PPC64LE-NEXT:  .LBB114_1:
-; PPC64LE-NEXT:    stdcx. 5, 0, 3
-; PPC64LE-NEXT:    beqlr 0
-; PPC64LE-NEXT:  .LBB114_2:
 ; PPC64LE-NEXT:    ldarx 6, 0, 3
 ; PPC64LE-NEXT:    cmpd 4, 6
-; PPC64LE-NEXT:    beq 0, .LBB114_1
-; PPC64LE-NEXT:  # %bb.3:
+; PPC64LE-NEXT:    bne 0, .LBB114_3
+; PPC64LE-NEXT:  # %bb.2:
+; PPC64LE-NEXT:    stdcx. 5, 0, 3
+; PPC64LE-NEXT:    beqlr 0
+; PPC64LE-NEXT:    b .LBB114_1
+; PPC64LE-NEXT:  .LBB114_3:
 ; PPC64LE-NEXT:    stdcx. 6, 0, 3
 ; PPC64LE-NEXT:    blr
   %res = cmpxchg i64* %ptr, i64 %cmp, i64 %val syncscope("singlethread") release acquire
@@ -2758,7 +2734,7 @@ define i8 @test160(i8* %ptr, i8 %val) {
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:  .LBB160_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB160_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2774,7 +2750,7 @@ define i8 @test161(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    mr 5, 3
 ; PPC64LE-NEXT:  .LBB161_1:
 ; PPC64LE-NEXT:    lbarx 3, 0, 5
-; PPC64LE-NEXT:    subf 6, 4, 3
+; PPC64LE-NEXT:    sub 6, 3, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 5
 ; PPC64LE-NEXT:    bne 0, .LBB161_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2790,7 +2766,7 @@ define i8 @test162(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB162_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB162_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2806,7 +2782,7 @@ define i8 @test163(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB163_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB163_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2823,7 +2799,7 @@ define i8 @test164(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB164_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB164_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2839,7 +2815,7 @@ define i16 @test165(i16* %ptr, i16 %val) {
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:  .LBB165_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB165_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2855,7 +2831,7 @@ define i16 @test166(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    mr 5, 3
 ; PPC64LE-NEXT:  .LBB166_1:
 ; PPC64LE-NEXT:    lharx 3, 0, 5
-; PPC64LE-NEXT:    subf 6, 4, 3
+; PPC64LE-NEXT:    sub 6, 3, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 5
 ; PPC64LE-NEXT:    bne 0, .LBB166_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2871,7 +2847,7 @@ define i16 @test167(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB167_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB167_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2887,7 +2863,7 @@ define i16 @test168(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB168_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB168_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2904,7 +2880,7 @@ define i16 @test169(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB169_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB169_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2920,7 +2896,7 @@ define i32 @test170(i32* %ptr, i32 %val) {
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:  .LBB170_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB170_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2936,7 +2912,7 @@ define i32 @test171(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    mr 5, 3
 ; PPC64LE-NEXT:  .LBB171_1:
 ; PPC64LE-NEXT:    lwarx 3, 0, 5
-; PPC64LE-NEXT:    subf 6, 4, 3
+; PPC64LE-NEXT:    sub 6, 3, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 5
 ; PPC64LE-NEXT:    bne 0, .LBB171_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2952,7 +2928,7 @@ define i32 @test172(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB172_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB172_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2968,7 +2944,7 @@ define i32 @test173(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB173_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB173_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -2985,7 +2961,7 @@ define i32 @test174(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB174_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB174_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6482,7 +6458,7 @@ define i8 @test380(i8* %ptr, i8 %val) {
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:  .LBB380_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB380_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6498,7 +6474,7 @@ define i8 @test381(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    mr 5, 3
 ; PPC64LE-NEXT:  .LBB381_1:
 ; PPC64LE-NEXT:    lbarx 3, 0, 5
-; PPC64LE-NEXT:    subf 6, 4, 3
+; PPC64LE-NEXT:    sub 6, 3, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 5
 ; PPC64LE-NEXT:    bne 0, .LBB381_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6514,7 +6490,7 @@ define i8 @test382(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB382_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB382_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6530,7 +6506,7 @@ define i8 @test383(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB383_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB383_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6547,7 +6523,7 @@ define i8 @test384(i8* %ptr, i8 %val) {
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB384_1:
 ; PPC64LE-NEXT:    lbarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stbcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB384_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6563,7 +6539,7 @@ define i16 @test385(i16* %ptr, i16 %val) {
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:  .LBB385_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB385_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6579,7 +6555,7 @@ define i16 @test386(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    mr 5, 3
 ; PPC64LE-NEXT:  .LBB386_1:
 ; PPC64LE-NEXT:    lharx 3, 0, 5
-; PPC64LE-NEXT:    subf 6, 4, 3
+; PPC64LE-NEXT:    sub 6, 3, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 5
 ; PPC64LE-NEXT:    bne 0, .LBB386_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6595,7 +6571,7 @@ define i16 @test387(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB387_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB387_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6611,7 +6587,7 @@ define i16 @test388(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB388_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB388_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6628,7 +6604,7 @@ define i16 @test389(i16* %ptr, i16 %val) {
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB389_1:
 ; PPC64LE-NEXT:    lharx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    sthcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB389_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6644,7 +6620,7 @@ define i32 @test390(i32* %ptr, i32 %val) {
 ; PPC64LE:       # %bb.0:
 ; PPC64LE-NEXT:  .LBB390_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB390_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6660,7 +6636,7 @@ define i32 @test391(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    mr 5, 3
 ; PPC64LE-NEXT:  .LBB391_1:
 ; PPC64LE-NEXT:    lwarx 3, 0, 5
-; PPC64LE-NEXT:    subf 6, 4, 3
+; PPC64LE-NEXT:    sub 6, 3, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 5
 ; PPC64LE-NEXT:    bne 0, .LBB391_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6676,7 +6652,7 @@ define i32 @test392(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB392_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB392_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6692,7 +6668,7 @@ define i32 @test393(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    lwsync
 ; PPC64LE-NEXT:  .LBB393_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB393_1
 ; PPC64LE-NEXT:  # %bb.2:
@@ -6709,7 +6685,7 @@ define i32 @test394(i32* %ptr, i32 %val) {
 ; PPC64LE-NEXT:    sync
 ; PPC64LE-NEXT:  .LBB394_1:
 ; PPC64LE-NEXT:    lwarx 5, 0, 3
-; PPC64LE-NEXT:    subf 6, 4, 5
+; PPC64LE-NEXT:    sub 6, 5, 4
 ; PPC64LE-NEXT:    stwcx. 6, 0, 3
 ; PPC64LE-NEXT:    bne 0, .LBB394_1
 ; PPC64LE-NEXT:  # %bb.2:

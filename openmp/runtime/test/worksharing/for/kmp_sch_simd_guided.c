@@ -1,5 +1,4 @@
 // RUN: %libomp-compile-and-run
-// REQUIRES: openmp-4.5
 /*
   Test for the 'schedule(simd:guided)' clause.
   Compiler needs to generate a dynamic dispatching and pass the schedule
@@ -129,7 +128,7 @@ int run_loop_64(i64 loop_lb, i64 loop_ub, i64 loop_st, int loop_chunk) {
       // Guided scheduling uses FP computations, so current chunk may
       // be a bit bigger (+1) than allowed maximum
       if (!(cur <= max + 1)) {
-        printf("Error with iter %d, %d\n", cur, max);
+        printf("Error with iter %llu, %llu\n", cur, max);
         err++;
       }
       // Update maximum for the next chunk
@@ -281,7 +280,7 @@ int run_loop_32(int loop_lb, int loop_ub, int loop_st, int loop_chunk) {
       // Guided scheduling uses FP computations, so current chunk may
       // be a bit bigger (+1) than allowed maximum
       if (!(cur <= max + 1)) {
-        printf("Error with iter %d, %d\n", cur, max);
+        printf("Error with iter %llu, %llu\n", cur, max);
         err++;
       }
       // Update maximum for the next chunk
