@@ -112,11 +112,11 @@ static bool RedirectIO(Optional<StringRef> Path, int FD, std::string* ErrMsg) {
   }
 
   // Install it as the requested FD
-  if (dup2(InFD, FD) == -1) {
-    MakeErrMsg(ErrMsg, "Cannot dup2");
-    close(InFD);
-    return true;
-  }
+  // if (dup2(InFD, FD) == -1) {
+  //   MakeErrMsg(ErrMsg, "Cannot dup2");
+  //   close(InFD);
+  //   return true;
+  // }
   close(InFD);      // Close the original FD
   return false;
 }
@@ -176,6 +176,7 @@ static bool Execute(ProcessInfo &PI, StringRef Program,
                     ArrayRef<Optional<StringRef>> Redirects,
                     unsigned MemoryLimit, std::string *ErrMsg,
                     BitVector *AffinityMask) {
+#if 0
   if (!llvm::sys::fs::exists(Program)) {
     if (ErrMsg)
       *ErrMsg = std::string("Executable \"") + Program.str() +
@@ -330,16 +331,16 @@ static bool Execute(ProcessInfo &PI, StringRef Program,
   PI.Process = child;
 
   return true;
+  #endif
+  return false;
 }
 
 namespace llvm {
 namespace sys {
 
-#ifndef _AIX
-using ::wait4;
-#else
+
 static pid_t (wait4)(pid_t pid, int *status, int options, struct rusage *usage);
-#endif
+
 
 } // namespace sys
 } // namespace llvm
@@ -381,113 +382,12 @@ pid_t (llvm::sys::wait4)(pid_t pid, int *status, int options,
 ProcessInfo llvm::sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
                             bool WaitUntilTerminates, std::string *ErrMsg,
                             Optional<ProcessStatistics> *ProcStat) {
-  struct sigaction Act, Old;
-  assert(PI.Pid && "invalid pid to wait on, process not started?");
 
-  int WaitPidOptions = 0;
-  pid_t ChildPid = PI.Pid;
-  if (WaitUntilTerminates) {
-    SecondsToWait = 0;
-  } else if (SecondsToWait) {
-    // Install a timeout handler.  The handler itself does nothing, but the
-    // simple fact of having a handler at all causes the wait below to return
-    // with EINTR, unlike if we used SIG_IGN.
-    memset(&Act, 0, sizeof(Act));
-    Act.sa_handler = TimeOutHandler;
-    sigemptyset(&Act.sa_mask);
-    sigaction(SIGALRM, &Act, &Old);
-    // FIXME The alarm signal may be delivered to another thread.
-    alarm(SecondsToWait);
-  } else if (SecondsToWait == 0)
-    WaitPidOptions = WNOHANG;
+ ProcessInfo WaitResult;
+ WaitResult.Pid = 12345;
+ WaitResult.ReturnCode = -1;
+ return WaitResult;
 
-  // Parent process: Wait for the child process to terminate.
-  int status;
-  ProcessInfo WaitResult;
-  rusage Info;
-  if (ProcStat)
-    ProcStat->reset();
-
-  do {
-    WaitResult.Pid = sys::wait4(ChildPid, &status, WaitPidOptions, &Info);
-  } while (WaitUntilTerminates && WaitResult.Pid == -1 && errno == EINTR);
-
-  if (WaitResult.Pid != PI.Pid) {
-    if (WaitResult.Pid == 0) {
-      // Non-blocking wait.
-      return WaitResult;
-    } else {
-      if (SecondsToWait && errno == EINTR) {
-        // Kill the child.
-        kill(PI.Pid, SIGKILL);
-
-        // Turn off the alarm and restore the signal handler
-        alarm(0);
-        sigaction(SIGALRM, &Old, nullptr);
-
-        // Wait for child to die
-        // FIXME This could grab some other child process out from another
-        // waiting thread and then leave a zombie anyway.
-        if (wait(&status) != ChildPid)
-          MakeErrMsg(ErrMsg, "Child timed out but wouldn't die");
-        else
-          MakeErrMsg(ErrMsg, "Child timed out", 0);
-
-        WaitResult.ReturnCode = -2; // Timeout detected
-        return WaitResult;
-      } else if (errno != EINTR) {
-        MakeErrMsg(ErrMsg, "Error waiting for child process");
-        WaitResult.ReturnCode = -1;
-        return WaitResult;
-      }
-    }
-  }
-
-  // We exited normally without timeout, so turn off the timer.
-  if (SecondsToWait && !WaitUntilTerminates) {
-    alarm(0);
-    sigaction(SIGALRM, &Old, nullptr);
-  }
-
-  if (ProcStat) {
-    std::chrono::microseconds UserT = toDuration(Info.ru_utime);
-    std::chrono::microseconds KernelT = toDuration(Info.ru_stime);
-    uint64_t PeakMemory = static_cast<uint64_t>(Info.ru_maxrss);
-    *ProcStat = ProcessStatistics{UserT + KernelT, UserT, PeakMemory};
-  }
-
-  // Return the proper exit status. Detect error conditions
-  // so we can return -1 for them and set ErrMsg informatively.
-  int result = 0;
-  if (WIFEXITED(status)) {
-    result = WEXITSTATUS(status);
-    WaitResult.ReturnCode = result;
-
-    if (result == 127) {
-      if (ErrMsg)
-        *ErrMsg = llvm::sys::StrError(ENOENT);
-      WaitResult.ReturnCode = -1;
-      return WaitResult;
-    }
-    if (result == 126) {
-      if (ErrMsg)
-        *ErrMsg = "Program could not be executed";
-      WaitResult.ReturnCode = -1;
-      return WaitResult;
-    }
-  } else if (WIFSIGNALED(status)) {
-    if (ErrMsg) {
-      *ErrMsg = strsignal(WTERMSIG(status));
-#ifdef WCOREDUMP
-      if (WCOREDUMP(status))
-        *ErrMsg += " (core dumped)";
-#endif
-    }
-    // Return a special value to indicate that the process received an unhandled
-    // signal during execution as opposed to failing to execute.
-    WaitResult.ReturnCode = -2;
-  }
-  return WaitResult;
 }
 
 std::error_code llvm::sys::ChangeStdinToBinary() {

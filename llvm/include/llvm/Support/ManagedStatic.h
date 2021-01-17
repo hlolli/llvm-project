@@ -13,7 +13,7 @@
 #ifndef LLVM_SUPPORT_MANAGEDSTATIC_H
 #define LLVM_SUPPORT_MANAGEDSTATIC_H
 
-#include <atomic>
+// #include <atomic>
 #include <cstddef>
 
 namespace llvm {
@@ -48,17 +48,9 @@ template <typename T, size_t N> struct object_deleter<T[N]> {
 /// ManagedStaticBase - Common base class for ManagedStatic instances.
 class ManagedStaticBase {
 protected:
-#ifdef LLVM_USE_CONSTEXPR_CTOR
-  mutable std::atomic<void *> Ptr{};
+  mutable void* Ptr = nullptr;
   mutable void (*DeleterFn)(void *) = nullptr;
   mutable const ManagedStaticBase *Next = nullptr;
-#else
-  // This should only be used as a static variable, which guarantees that this
-  // will be zero initialized.
-  mutable std::atomic<void *> Ptr;
-  mutable void (*DeleterFn)(void *);
-  mutable const ManagedStaticBase *Next;
-#endif
 
   void RegisterManagedStatic(void *(*creator)(), void (*deleter)(void*)) const;
 
@@ -68,7 +60,7 @@ public:
 #endif
 
   /// isConstructed - Return true if this object has not been created yet.
-  bool isConstructed() const { return Ptr != nullptr; }
+  bool isConstructed() const { return false; }
 
   void destroy() const;
 };
@@ -84,21 +76,21 @@ class ManagedStatic : public ManagedStaticBase {
 public:
   // Accessors.
   C &operator*() {
-    void *Tmp = Ptr.load(std::memory_order_acquire);
-    if (!Tmp)
-      RegisterManagedStatic(Creator::call, Deleter::call);
+    // void *Tmp = Ptr.load(std::memory_order_acquire);
+    // if (!Tmp)
+    //   RegisterManagedStatic(Creator::call, Deleter::call);
 
-    return *static_cast<C *>(Ptr.load(std::memory_order_relaxed));
+    // return *static_cast<C *>(Ptr.load(std::memory_order_relaxed));
   }
 
   C *operator->() { return &**this; }
 
   const C &operator*() const {
-    void *Tmp = Ptr.load(std::memory_order_acquire);
-    if (!Tmp)
-      RegisterManagedStatic(Creator::call, Deleter::call);
+    // void *Tmp = Ptr.load(std::memory_order_acquire);
+    // if (!Tmp)
+    //   RegisterManagedStatic(Creator::call, Deleter::call);
 
-    return *static_cast<C *>(Ptr.load(std::memory_order_relaxed));
+    // return *static_cast<C *>(Ptr.load(std::memory_order_relaxed));
   }
 
   const C *operator->() const { return &**this; }
@@ -106,7 +98,7 @@ public:
   // Extract the instance, leaving the ManagedStatic uninitialized. The
   // user is then responsible for the lifetime of the returned instance.
   C *claim() {
-    return static_cast<C *>(Ptr.exchange(nullptr));
+    // return static_cast<C *>(Ptr.exchange(nullptr));
   }
 };
 

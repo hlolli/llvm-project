@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <system_error>
-#include <thread>
+// #include <thread>
 #include <tuple>
 
 #ifdef _WIN32
@@ -99,7 +99,9 @@ static std::error_code getHostID(SmallVectorImpl<char> &HostID) {
   char HostName[256];
   HostName[255] = 0;
   HostName[0] = 0;
+  #ifndef BINJI_HACK
   gethostname(HostName, 255);
+  #endif
   StringRef HostNameRef(HostName);
   HostID.append(HostNameRef.begin(), HostNameRef.end());
 
@@ -118,7 +120,11 @@ bool LockFileManager::processStillExecuting(StringRef HostID, int PID) {
     return true; // Conservatively assume it's executing on error.
 
   // Check whether the process is dead. If so, we're done.
+#ifndef BINJI_HACK
   if (StoredHostID == HostID && getsid(PID) == -1 && errno == ESRCH)
+#else
+  if (StoredHostID == HostID && errno == ESRCH)
+#endif
     return false;
 #endif
 
@@ -196,8 +202,12 @@ LockFileManager::LockFileManager(StringRef FileName)
     }
 
     raw_fd_ostream Out(UniqueLockFileID, /*shouldClose=*/true);
-    Out << HostID << ' ' << sys::Process::getProcessId();
-    Out.close();
+    Out << HostID << ' ';
+    #ifndef BINJI_HACK
+      Out << sys::Process::getProcessId();
+    #else
+      Out << 31415;
+    #endif
 
     if (Out.has_error()) {
       // We failed to write out PID, so report the error, remove the
@@ -292,58 +302,59 @@ LockFileManager::~LockFileManager() {
 
 LockFileManager::WaitForUnlockResult
 LockFileManager::waitForUnlock(const unsigned MaxSeconds) {
-  if (getState() != LFS_Shared)
-    return Res_Success;
+  return Res_Success;
+  // if (getState() != LFS_Shared)
+  //   return Res_Success;
 
-  // Since we don't yet have an event-based method to wait for the lock file,
-  // implement randomized exponential backoff, similar to Ethernet collision
-  // algorithm. This improves performance on machines with high core counts
-  // when the file lock is heavily contended by multiple clang processes
-  const unsigned long MinWaitDurationMS = 10;
-  const unsigned long MaxWaitMultiplier = 50; // 500ms max wait
-  unsigned long WaitMultiplier = 1;
-  unsigned long ElapsedTimeSeconds = 0;
+  // // Since we don't yet have an event-based method to wait for the lock file,
+  // // implement randomized exponential backoff, similar to Ethernet collision
+  // // algorithm. This improves performance on machines with high core counts
+  // // when the file lock is heavily contended by multiple clang processes
+  // const unsigned long MinWaitDurationMS = 10;
+  // const unsigned long MaxWaitMultiplier = 50; // 500ms max wait
+  // unsigned long WaitMultiplier = 1;
+  // unsigned long ElapsedTimeSeconds = 0;
 
-  std::random_device Device;
-  std::default_random_engine Engine(Device());
+  // std::random_device Device;
+  // std::default_random_engine Engine(Device());
 
-  auto StartTime = std::chrono::steady_clock::now();
+  // auto StartTime = std::chrono::steady_clock::now();
 
-  do {
-    // FIXME: implement event-based waiting
+  // do {
+  //   // FIXME: implement event-based waiting
 
-    // Sleep for the designated interval, to allow the owning process time to
-    // finish up and remove the lock file.
-    std::uniform_int_distribution<unsigned long> Distribution(1,
-                                                              WaitMultiplier);
-    unsigned long WaitDurationMS = MinWaitDurationMS * Distribution(Engine);
-    std::this_thread::sleep_for(std::chrono::milliseconds(WaitDurationMS));
+  //   // Sleep for the designated interval, to allow the owning process time to
+  //   // finish up and remove the lock file.
+  //   std::uniform_int_distribution<unsigned long> Distribution(1,
+  //                                                             WaitMultiplier);
+  //   unsigned long WaitDurationMS = MinWaitDurationMS * Distribution(Engine);
+  //   std::this_thread::sleep_for(std::chrono::milliseconds(WaitDurationMS));
 
-    if (sys::fs::access(LockFileName.c_str(), sys::fs::AccessMode::Exist) ==
-        errc::no_such_file_or_directory) {
-      // If the original file wasn't created, somone thought the lock was dead.
-      if (!sys::fs::exists(FileName))
-        return Res_OwnerDied;
-      return Res_Success;
-    }
+  //   if (sys::fs::access(LockFileName.c_str(), sys::fs::AccessMode::Exist) ==
+  //       errc::no_such_file_or_directory) {
+  //     // If the original file wasn't created, somone thought the lock was dead.
+  //     if (!sys::fs::exists(FileName))
+  //       return Res_OwnerDied;
+  //     return Res_Success;
+  //   }
 
-    // If the process owning the lock died without cleaning up, just bail out.
-    if (!processStillExecuting((*Owner).first, (*Owner).second))
-      return Res_OwnerDied;
+  //   // If the process owning the lock died without cleaning up, just bail out.
+  //   if (!processStillExecuting((*Owner).first, (*Owner).second))
+  //     return Res_OwnerDied;
 
-    WaitMultiplier *= 2;
-    if (WaitMultiplier > MaxWaitMultiplier) {
-      WaitMultiplier = MaxWaitMultiplier;
-    }
+  //   WaitMultiplier *= 2;
+  //   if (WaitMultiplier > MaxWaitMultiplier) {
+  //     WaitMultiplier = MaxWaitMultiplier;
+  //   }
 
-    ElapsedTimeSeconds = std::chrono::duration_cast<std::chrono::seconds>(
-                             std::chrono::steady_clock::now() - StartTime)
-                             .count();
+  //   ElapsedTimeSeconds = std::chrono::duration_cast<std::chrono::seconds>(
+  //                            std::chrono::steady_clock::now() - StartTime)
+  //                            .count();
 
-  } while (ElapsedTimeSeconds < MaxSeconds);
+  // } while (ElapsedTimeSeconds < MaxSeconds);
 
-  // Give up.
-  return Res_Timeout;
+  // // Give up.
+  // return Res_Timeout;
 }
 
 std::error_code LockFileManager::unsafeRemoveLockFile() {

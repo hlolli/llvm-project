@@ -106,10 +106,10 @@ add_llvm_component_library(LLVMSupport
   CRC.cpp
   ConvertUTF.cpp
   ConvertUTFWrapper.cpp
-  CrashRecoveryContext.cpp
+  # CrashRecoveryContext.cpp
   DataExtractor.cpp
   Debug.cpp
-  DebugCounter.cpp
+  # DebugCounter.cpp
   DeltaAlgorithm.cpp
   DAGDeltaAlgorithm.cpp
   DJB.cpp
@@ -118,7 +118,7 @@ add_llvm_component_library(LLVMSupport
   Error.cpp
   ErrorHandling.cpp
   ExtensibleRTTI.cpp
-  FileCollector.cpp
+  # FileCollector.cpp
   FileUtilities.cpp
   FileOutputBuffer.cpp
   FoldingSet.cpp
@@ -148,7 +148,7 @@ add_llvm_component_library(LLVMSupport
   NativeFormatting.cpp
   OptimizedStructLayout.cpp
   Optional.cpp
-  Parallel.cpp
+ # Parallel.cpp
   PluginLoader.cpp
   PrettyStackTrace.cpp
   RandomNumberGenerator.cpp
@@ -173,8 +173,8 @@ add_llvm_component_library(LLVMSupport
   SystemUtils.cpp
   TarWriter.cpp
   TargetParser.cpp
-  ThreadPool.cpp
-  TimeProfiler.cpp
+  # ThreadPool.cpp
+  # TimeProfiler.cpp
   Timer.cpp
   ToolOutputFile.cpp
   TrigramIndex.cpp
@@ -209,7 +209,7 @@ add_llvm_component_library(LLVMSupport
   Path.cpp
   Process.cpp
   Program.cpp
-  RWMutex.cpp
+  # RWMutex.cpp
   Signals.cpp
   TargetRegistry.cpp
   ThreadLocal.cpp

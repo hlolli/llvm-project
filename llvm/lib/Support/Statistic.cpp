@@ -97,18 +97,18 @@ void TrackingStatistic::RegisterStatistic() {
   // ManagedStatic mutex, doing so with StatLock held would lead to a lock
   // order inversion. To avoid that, we dereference the ManagedStatics first,
   // and only take StatLock afterwards.
-  if (!Initialized.load(std::memory_order_relaxed)) {
+  if (!Initialized) {
     sys::SmartMutex<true> &Lock = *StatLock;
     StatisticInfo &SI = *StatInfo;
     sys::SmartScopedLock<true> Writer(Lock);
     // Check Initialized again after acquiring the lock.
-    if (Initialized.load(std::memory_order_relaxed))
+    if (Initialized)
       return;
     if (EnableStats || Enabled)
       SI.addStatistic(this);
 
     // Remember we have been registered.
-    Initialized.store(true, std::memory_order_release);
+    Initialized = true;
   }
 }
 

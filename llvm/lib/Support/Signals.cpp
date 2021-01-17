@@ -54,7 +54,7 @@ struct CallbackAndCookie {
   sys::SignalHandlerCallback Callback;
   void *Cookie;
   enum class Status { Empty, Initializing, Initialized, Executing };
-  std::atomic<Status> Flag;
+  Status Flag;
 };
 static constexpr size_t MaxSignalHandlerCallbacks = 8;
 static CallbackAndCookie CallBacksToRun[MaxSignalHandlerCallbacks];
@@ -65,12 +65,12 @@ void sys::RunSignalHandlers() {
     auto &RunMe = CallBacksToRun[I];
     auto Expected = CallbackAndCookie::Status::Initialized;
     auto Desired = CallbackAndCookie::Status::Executing;
-    if (!RunMe.Flag.compare_exchange_strong(Expected, Desired))
-      continue;
+    // if (!RunMe.Flag.compare_exchange_strong(Expected, Desired))
+    //   continue;
     (*RunMe.Callback)(RunMe.Cookie);
     RunMe.Callback = nullptr;
     RunMe.Cookie = nullptr;
-    RunMe.Flag.store(CallbackAndCookie::Status::Empty);
+    RunMe.Flag = CallbackAndCookie::Status::Empty;
   }
 }
 
@@ -81,11 +81,11 @@ static void insertSignalHandler(sys::SignalHandlerCallback FnPtr,
     auto &SetMe = CallBacksToRun[I];
     auto Expected = CallbackAndCookie::Status::Empty;
     auto Desired = CallbackAndCookie::Status::Initializing;
-    if (!SetMe.Flag.compare_exchange_strong(Expected, Desired))
-      continue;
+    // if (!SetMe.Flag.compare_exchange_strong(Expected, Desired))
+    //   continue;
     SetMe.Callback = FnPtr;
     SetMe.Cookie = Cookie;
-    SetMe.Flag.store(CallbackAndCookie::Status::Initialized);
+    SetMe.Flag = CallbackAndCookie::Status::Initialized;
     return;
   }
   report_fatal_error("too many signal callbacks already registered");

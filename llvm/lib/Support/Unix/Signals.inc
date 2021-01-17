@@ -84,13 +84,11 @@ static RETSIGTYPE InfoSignalHandler(int Sig);  // defined below.
 
 using SignalHandlerFunctionType = void (*)();
 /// The function to call if ctrl-c is pressed.
-static std::atomic<SignalHandlerFunctionType> InterruptFunction =
-    ATOMIC_VAR_INIT(nullptr);
-static std::atomic<SignalHandlerFunctionType> InfoSignalFunction =
-    ATOMIC_VAR_INIT(nullptr);
+static SignalHandlerFunctionType InterruptFunction = nullptr; //&abort;
+
+static SignalHandlerFunctionType InfoSignalFunction = nullptr;
 /// The function to call on SIGPIPE (one-time use only).
-static std::atomic<SignalHandlerFunctionType> OneShotPipeSignalFunction =
-    ATOMIC_VAR_INIT(nullptr);
+static SignalHandlerFunctionType OneShotPipeSignalFunction = nullptr;
 
 namespace {
 /// Signal-safe removal of files.
@@ -98,8 +96,8 @@ namespace {
 /// themselves is signal-safe. Memory is freed when the head is freed, deletion
 /// is therefore not signal-safe either.
 class FileToRemoveList {
-  std::atomic<char *> Filename = ATOMIC_VAR_INIT(nullptr);
-  std::atomic<FileToRemoveList *> Next = ATOMIC_VAR_INIT(nullptr);
+  char * Filename;
+  FileToRemoveList* Next;
 
   FileToRemoveList() = default;
   // Not signal-safe.
@@ -108,40 +106,46 @@ class FileToRemoveList {
 public:
   // Not signal-safe.
   ~FileToRemoveList() {
-    if (FileToRemoveList *N = Next.exchange(nullptr))
+    if (Next) {
+      FileToRemoveList *N = Next;
+      Next = nullptr;
       delete N;
-    if (char *F = Filename.exchange(nullptr))
+    }
+    if (char *F = Filename) {
+      Filename = nullptr;
       free(F);
+    }
   }
 
   // Not signal-safe.
-  static void insert(std::atomic<FileToRemoveList *> &Head,
+  static void insert(FileToRemoveList* Head,
                      const std::string &Filename) {
     // Insert the new file at the end of the list.
-    FileToRemoveList *NewHead = new FileToRemoveList(Filename);
-    std::atomic<FileToRemoveList *> *InsertionPoint = &Head;
-    FileToRemoveList *OldHead = nullptr;
-    while (!InsertionPoint->compare_exchange_strong(OldHead, NewHead)) {
-      InsertionPoint = &OldHead->Next;
+    FileToRemoveList* NewHead = new FileToRemoveList(Filename);
+    FileToRemoveList* InsertionPoint = Head;
+    FileToRemoveList* OldHead = nullptr;
+    while (OldHead->Next) {
+      InsertionPoint = OldHead->Next;
       OldHead = nullptr;
     }
   }
 
   // Not signal-safe.
-  static void erase(std::atomic<FileToRemoveList *> &Head,
+  static void erase(FileToRemoveList* Head,
                     const std::string &Filename) {
     // Use a lock to avoid concurrent erase: the comparison would access
     // free'd memory.
     static ManagedStatic<sys::SmartMutex<true>> Lock;
     sys::SmartScopedLock<true> Writer(*Lock);
 
-    for (FileToRemoveList *Current = Head.load(); Current;
-         Current = Current->Next.load()) {
-      if (char *OldFilename = Current->Filename.load()) {
+    for (FileToRemoveList *Current = Head; Current;
+         Current = Current->Next) {
+      if (char *OldFilename = Current->Filename) {
         if (OldFilename != Filename)
           continue;
         // Leave an empty filename.
-        OldFilename = Current->Filename.exchange(nullptr);
+        OldFilename = Current->Filename;
+        Current->Filename = nullptr;
         // The filename might have become null between the time we
         // compared it and we exchanged it.
         if (OldFilename)
@@ -151,18 +155,20 @@ public:
   }
 
   // Signal-safe.
-  static void removeAllFiles(std::atomic<FileToRemoveList *> &Head) {
+  static void removeAllFiles(FileToRemoveList* Head) {
     // If cleanup were to occur while we're removing files we'd have a bad time.
     // Make sure we're OK by preventing cleanup from doing anything while we're
     // removing files. If cleanup races with us and we win we'll have a leak,
     // but we won't crash.
-    FileToRemoveList *OldHead = Head.exchange(nullptr);
+    FileToRemoveList *OldHead = Head;
+    Head = nullptr;
 
     for (FileToRemoveList *currentFile = OldHead; currentFile;
-         currentFile = currentFile->Next.load()) {
+         currentFile = currentFile) {
       // If erasing was occuring while we're trying to remove files we'd look
       // at free'd data. Take away the path and put it back when done.
-      if (char *path = currentFile->Filename.exchange(nullptr)) {
+      if (char *path = currentFile->Filename) {
+        currentFile->Filename = nullptr;
         // Get the status so we can determine if it's a file or directory. If we
         // can't stat the file, ignore it.
         struct stat buf;
@@ -180,15 +186,15 @@ public:
         unlink(path);
 
         // We're done removing the file, erasing can safely proceed.
-        currentFile->Filename.exchange(path);
+        currentFile->Filename = path;
       }
     }
 
     // We're done removing files, cleanup can safely proceed.
-    Head.exchange(OldHead);
+    Head = OldHead;
   }
 };
-static std::atomic<FileToRemoveList *> FilesToRemove = ATOMIC_VAR_INIT(nullptr);
+ static FileToRemoveList* FilesToRemove = nullptr;
 
 /// Clean up the list in a signal-friendly manner.
 /// Recall that signals can fire during llvm_shutdown. If this occurs we should
@@ -196,7 +202,8 @@ static std::atomic<FileToRemoveList *> FilesToRemove = ATOMIC_VAR_INIT(nullptr);
 struct FilesToRemoveCleanup {
   // Not signal-safe.
   ~FilesToRemoveCleanup() {
-    FileToRemoveList *Head = FilesToRemove.exchange(nullptr);
+    FileToRemoveList *Head = FilesToRemove;
+    FilesToRemove = nullptr;
     if (Head)
       delete Head;
   }
@@ -243,11 +250,11 @@ static const size_t NumSigs =
     array_lengthof(InfoSigs) + 1 /* SIGPIPE */;
 
 
-static std::atomic<unsigned> NumRegisteredSignals = ATOMIC_VAR_INIT(0);
-static struct {
-  struct sigaction SA;
-  int SigNo;
-} RegisteredSignalInfo[NumSigs];
+static unsigned NumRegisteredSignals = 0;
+// static struct {
+//   struct sigaction SA;
+//   int SigNo;
+// } RegisteredSignalInfo[NumSigs];
 
 #if defined(HAVE_SIGALTSTACK)
 // Hold onto both the old and new alternate signal stack so that it's not
@@ -288,7 +295,7 @@ static void RegisterHandlers() { // Not signal-safe.
   sys::SmartScopedLock<true> Guard(*SignalHandlerRegistrationMutex);
 
   // If the handlers are already registered, we're done.
-  if (NumRegisteredSignals.load() != 0)
+  if (NumRegisteredSignals != 0)
     return;
 
   // Create an alternate stack for signal handling. This is necessary for us to
@@ -297,10 +304,10 @@ static void RegisterHandlers() { // Not signal-safe.
 
   enum class SignalKind { IsKill, IsInfo };
   auto registerHandler = [&](int Signal, SignalKind Kind) {
-    unsigned Index = NumRegisteredSignals.load();
+    unsigned Index = NumRegisteredSignals;
+#ifndef BINJI_HACK
     assert(Index < array_lengthof(RegisteredSignalInfo) &&
            "Out of space for signal handlers!");
-
     struct sigaction NewHandler;
 
     switch (Kind) {
@@ -317,7 +324,9 @@ static void RegisterHandlers() { // Not signal-safe.
 
     // Install the new handler, save the old one in RegisteredSignalInfo.
     sigaction(Signal, &NewHandler, &RegisteredSignalInfo[Index].SA);
+
     RegisteredSignalInfo[Index].SigNo = Signal;
+#endif
     ++NumRegisteredSignals;
   };
 
@@ -332,12 +341,14 @@ static void RegisterHandlers() { // Not signal-safe.
 }
 
 void sys::unregisterHandlers() {
+#ifndef BINJI_HACK
   // Restore all of the signal handlers to how they were before we showed up.
   for (unsigned i = 0, e = NumRegisteredSignals.load(); i != e; ++i) {
     sigaction(RegisteredSignalInfo[i].SigNo,
               &RegisteredSignalInfo[i].SA, nullptr);
     --NumRegisteredSignals;
   }
+  #endif
 }
 
 /// Process the FilesToRemove list.
@@ -369,23 +380,27 @@ static RETSIGTYPE SignalHandler(int Sig) {
   // instead of recursing in the signal handler.
   sys::unregisterHandlers();
 
+  #ifndef BINJI_HACK
   // Unmask all potentially blocked kill signals.
   sigset_t SigMask;
   sigfillset(&SigMask);
   sigprocmask(SIG_UNBLOCK, &SigMask, nullptr);
-
+  #endif
   {
     RemoveFilesToRemove();
 
     if (Sig == SIGPIPE)
-      if (auto OldOneShotPipeFunction =
-              OneShotPipeSignalFunction.exchange(nullptr))
+      if (auto OldOneShotPipeFunction = OneShotPipeSignalFunction) {
+        OneShotPipeSignalFunction = nullptr;
         return OldOneShotPipeFunction();
+      }
 
     bool IsIntSig = llvm::is_contained(IntSigs, Sig);
     if (IsIntSig)
-      if (auto OldInterruptFunction = InterruptFunction.exchange(nullptr))
+      if (auto OldInterruptFunction = InterruptFunction) {
+        InterruptFunction = nullptr;
         return OldInterruptFunction();
+      }
 
     if (Sig == SIGPIPE || IsIntSig) {
       raise(Sig); // Execute the default handler.
@@ -417,17 +432,17 @@ void llvm::sys::RunInterruptHandlers() {
 }
 
 void llvm::sys::SetInterruptFunction(void (*IF)()) {
-  InterruptFunction.exchange(IF);
+  InterruptFunction = IF;
   RegisterHandlers();
 }
 
 void llvm::sys::SetInfoSignalFunction(void (*Handler)()) {
-  InfoSignalFunction.exchange(Handler);
+  InfoSignalFunction = Handler;
   RegisterHandlers();
 }
 
 void llvm::sys::SetOneShotPipeSignalFunction(void (*Handler)()) {
-  OneShotPipeSignalFunction.exchange(Handler);
+  OneShotPipeSignalFunction = Handler;
   RegisterHandlers();
 }
 

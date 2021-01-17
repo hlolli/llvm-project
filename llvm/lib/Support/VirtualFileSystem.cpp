@@ -40,14 +40,14 @@
 #include "llvm/Support/YAMLParser.h"
 #include "llvm/Support/raw_ostream.h"
 #include <algorithm>
-#include <atomic>
+// #include <atomic>
 #include <cassert>
 #include <cstdint>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <memory>
-#include <mutex>
+// #include <mutex>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -1971,7 +1971,7 @@ void vfs::collectVFSFromYAML(std::unique_ptr<MemoryBuffer> Buffer,
 }
 
 UniqueID vfs::getNextVirtualUniqueID() {
-  static std::atomic<unsigned> UID;
+  static unsigned UID = 0;
   unsigned ID = ++UID;
   // The following assumes that uint64_t max will never collide with a real
   // dev_t value from the OS.

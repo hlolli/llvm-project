@@ -84,37 +84,37 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 
 # library checks
-if( NOT PURE_WINDOWS )
-  check_library_exists(pthread pthread_create "" HAVE_LIBPTHREAD)
-  if (HAVE_LIBPTHREAD)
-    check_library_exists(pthread pthread_getspecific "" HAVE_PTHREAD_GETSPECIFIC)
-    check_library_exists(pthread pthread_rwlock_init "" HAVE_PTHREAD_RWLOCK_INIT)
-    check_library_exists(pthread pthread_mutex_lock "" HAVE_PTHREAD_MUTEX_LOCK)
-  else()
-    # this could be Android
-    check_library_exists(c pthread_create "" PTHREAD_IN_LIBC)
-    if (PTHREAD_IN_LIBC)
-      check_library_exists(c pthread_getspecific "" HAVE_PTHREAD_GETSPECIFIC)
-      check_library_exists(c pthread_rwlock_init "" HAVE_PTHREAD_RWLOCK_INIT)
-      check_library_exists(c pthread_mutex_lock "" HAVE_PTHREAD_MUTEX_LOCK)
-    endif()
-  endif()
-  check_library_exists(dl dlopen "" HAVE_LIBDL)
-  check_library_exists(rt clock_gettime "" HAVE_LIBRT)
-endif()
+# if( NOT PURE_WINDOWS )
+#   check_library_exists(pthread pthread_create "" HAVE_LIBPTHREAD)
+#   if (HAVE_LIBPTHREAD)
+#     check_library_exists(pthread pthread_getspecific "" HAVE_PTHREAD_GETSPECIFIC)
+#     check_library_exists(pthread pthread_rwlock_init "" HAVE_PTHREAD_RWLOCK_INIT)
+#     check_library_exists(pthread pthread_mutex_lock "" HAVE_PTHREAD_MUTEX_LOCK)
+#   else()
+#     # this could be Android
+#     check_library_exists(c pthread_create "" PTHREAD_IN_LIBC)
+#     if (PTHREAD_IN_LIBC)
+#       check_library_exists(c pthread_getspecific "" HAVE_PTHREAD_GETSPECIFIC)
+#       check_library_exists(c pthread_rwlock_init "" HAVE_PTHREAD_RWLOCK_INIT)
+#       check_library_exists(c pthread_mutex_lock "" HAVE_PTHREAD_MUTEX_LOCK)
+#     endif()
+#   endif()
+#   check_library_exists(dl dlopen "" HAVE_LIBDL)
+#   check_library_exists(rt clock_gettime "" HAVE_LIBRT)
+# endif()
 
 # Check for libpfm.
 include(FindLibpfm)
 
-if(HAVE_LIBPTHREAD)
-  # We want to find pthreads library and at the moment we do want to
-  # have it reported as '-l<lib>' instead of '-pthread'.
-  # TODO: switch to -pthread once the rest of the build system can deal with it.
-  set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-  set(THREADS_HAVE_PTHREAD_ARG Off)
-  find_package(Threads REQUIRED)
-  set(LLVM_PTHREAD_LIB ${CMAKE_THREAD_LIBS_INIT})
-endif()
+# if(HAVE_LIBPTHREAD)
+#   # We want to find pthreads library and at the moment we do want to
+#   # have it reported as '-l<lib>' instead of '-pthread'.
+#   # TODO: switch to -pthread once the rest of the build system can deal with it.
+#   set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+#   set(THREADS_HAVE_PTHREAD_ARG Off)
+#   find_package(Threads REQUIRED)
+#   set(LLVM_PTHREAD_LIB ${CMAKE_THREAD_LIBS_INIT})
+# endif()
 
 if(LLVM_ENABLE_ZLIB)
   if(LLVM_ENABLE_ZLIB STREQUAL FORCE_ON)
@@ -288,16 +288,16 @@ if( LLVM_USING_GLIBC )
   list(APPEND CMAKE_REQUIRED_DEFINITIONS "-D_GNU_SOURCE")
 endif()
 # This check requires _GNU_SOURCE
-if (NOT PURE_WINDOWS)
-  if (LLVM_PTHREAD_LIB)
-    list(APPEND CMAKE_REQUIRED_LIBRARIES ${LLVM_PTHREAD_LIB})
-  endif()
-  check_symbol_exists(pthread_getname_np pthread.h HAVE_PTHREAD_GETNAME_NP)
-  check_symbol_exists(pthread_setname_np pthread.h HAVE_PTHREAD_SETNAME_NP)
-  if (LLVM_PTHREAD_LIB)
-    list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES ${LLVM_PTHREAD_LIB})
-  endif()
-endif()
+# if (NOT PURE_WINDOWS)
+#   if (LLVM_PTHREAD_LIB)
+#     list(APPEND CMAKE_REQUIRED_LIBRARIES ${LLVM_PTHREAD_LIB})
+#   endif()
+#   check_symbol_exists(pthread_getname_np pthread.h HAVE_PTHREAD_GETNAME_NP)
+#   check_symbol_exists(pthread_setname_np pthread.h HAVE_PTHREAD_SETNAME_NP)
+#   if (LLVM_PTHREAD_LIB)
+#     list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES ${LLVM_PTHREAD_LIB})
+#   endif()
+# endif()
 
 # available programs checks
 function(llvm_find_program name)
@@ -361,7 +361,8 @@ int main() { return 0;}
 
 
 # Define LLVM_HAS_ATOMICS if gcc or MSVC atomic builtins are supported.
-include(CheckAtomic)
+# include(CheckAtomic)
+set(LLVM_HAS_ATOMICS False)
 
 if( LLVM_ENABLE_PIC )
   set(ENABLE_PIC 1)
@@ -518,12 +519,13 @@ endif( MSVC )
 # FIXME: Signal handler return type, currently hardcoded to 'void'
 set(RETSIGTYPE void)
 
-if( LLVM_ENABLE_THREADS )
-  # Check if threading primitives aren't supported on this platform
-  if( NOT HAVE_PTHREAD_H AND NOT WIN32 )
-    set(LLVM_ENABLE_THREADS 0)
-  endif()
-endif()
+set(LLVM_ENABLE_THREADS 0)
+# if( LLVM_ENABLE_THREADS )
+#   # Check if threading primitives aren't supported on this platform
+#   if( NOT HAVE_PTHREAD_H AND NOT WIN32 )
+
+#   endif()
+# endif()
 
 if( LLVM_ENABLE_THREADS )
   message(STATUS "Threads enabled.")

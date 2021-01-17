@@ -19,13 +19,13 @@
 namespace llvm {
   namespace sys {
     Watchdog::Watchdog(unsigned int seconds) {
-#ifdef HAVE_UNISTD_H
+#if 0
       alarm(seconds);
 #endif
     }
 
     Watchdog::~Watchdog() {
-#ifdef HAVE_UNISTD_H
+#if 0
       alarm(0);
 #endif
     }

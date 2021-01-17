@@ -21,7 +21,7 @@
 #include "llvm/Support/Watchdog.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <atomic>
+// #include <atomic>
 #include <cassert>
 #include <cstdarg>
 #include <cstdio>
@@ -61,8 +61,7 @@ static LLVM_THREAD_LOCAL PrettyStackTraceEntry *PrettyStackTraceHead = nullptr;
 // the current thread". If the user happens to overflow an 'unsigned' with
 // SIGINFO requests, it's possible that some threads will stop responding to it,
 // but the program won't crash.
-static volatile std::atomic<unsigned> GlobalSigInfoGenerationCounter =
-    ATOMIC_VAR_INIT(1);
+static volatile unsigned GlobalSigInfoGenerationCounter = 1;
 static LLVM_THREAD_LOCAL unsigned ThreadLocalSigInfoGenerationCounter = 0;
 
 namespace llvm {
@@ -136,7 +135,7 @@ static void setCrashLogMessage(const char *msg) {
 #endif
   // Don't reorder subsequent operations: whatever comes after might crash and
   // we want the system crash handling to see the message we just set.
-  std::atomic_signal_fence(std::memory_order_seq_cst);
+  // std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 #ifdef __APPLE__
@@ -190,8 +189,7 @@ static void CrashHandler(void *) {
 }
 
 static void printForSigInfoIfNeeded() {
-  unsigned CurrentSigInfoGeneration =
-      GlobalSigInfoGenerationCounter.load(std::memory_order_relaxed);
+  unsigned CurrentSigInfoGeneration = GlobalSigInfoGenerationCounter;
   if (ThreadLocalSigInfoGenerationCounter == 0 ||
       ThreadLocalSigInfoGenerationCounter == CurrentSigInfoGeneration) {
     return;
@@ -292,15 +290,14 @@ void llvm::EnablePrettyStackTraceOnSigInfoForThisThread(bool ShouldEnable) {
   // The first time this is called, we register the SIGINFO handler.
   static bool HandlerRegistered = []{
     sys::SetInfoSignalFunction([]{
-      GlobalSigInfoGenerationCounter.fetch_add(1, std::memory_order_relaxed);
+      GlobalSigInfoGenerationCounter += 1;
     });
     return false;
   }();
   (void)HandlerRegistered;
 
   // Next, enable it for the current thread.
-  ThreadLocalSigInfoGenerationCounter =
-      GlobalSigInfoGenerationCounter.load(std::memory_order_relaxed);
+  ThreadLocalSigInfoGenerationCounter = GlobalSigInfoGenerationCounter;
 #endif
 }
 

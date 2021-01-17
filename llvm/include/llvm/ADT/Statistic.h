@@ -27,7 +27,7 @@
 
 #include "llvm/Config/llvm-config.h"
 #include "llvm/Support/Compiler.h"
-#include <atomic>
+// #include <atomic>
 #include <memory>
 #include <vector>
 
@@ -62,69 +62,70 @@ public:
 
 class TrackingStatistic : public StatisticBase {
 public:
-  std::atomic<unsigned> Value;
-  std::atomic<bool> Initialized;
+  unsigned Value;
+  bool Initialized;
 
   TrackingStatistic(const char *DebugType, const char *Name, const char *Desc)
       : StatisticBase(DebugType, Name, Desc), Value(0), Initialized(false) {}
 
-  unsigned getValue() const { return Value.load(std::memory_order_relaxed); }
+  unsigned getValue() const { return Value; }
 
   // Allow use of this class as the value itself.
   operator unsigned() const { return getValue(); }
 
   const TrackingStatistic &operator=(unsigned Val) {
-    Value.store(Val, std::memory_order_relaxed);
+    Value = Val;
     return init();
   }
 
   const TrackingStatistic &operator++() {
-    Value.fetch_add(1, std::memory_order_relaxed);
+    Value += 1;
     return init();
   }
 
   unsigned operator++(int) {
     init();
-    return Value.fetch_add(1, std::memory_order_relaxed);
+    return Value += 1;
   }
 
   const TrackingStatistic &operator--() {
-    Value.fetch_sub(1, std::memory_order_relaxed);
+    Value -= 1;
     return init();
   }
 
   unsigned operator--(int) {
     init();
-    return Value.fetch_sub(1, std::memory_order_relaxed);
+    Value -= 1;
+    return Value;
   }
 
   const TrackingStatistic &operator+=(unsigned V) {
     if (V == 0)
       return *this;
-    Value.fetch_add(V, std::memory_order_relaxed);
+    Value = Value + V;
     return init();
   }
 
   const TrackingStatistic &operator-=(unsigned V) {
     if (V == 0)
       return *this;
-    Value.fetch_sub(V, std::memory_order_relaxed);
+    Value = Value - V;
     return init();
   }
 
   void updateMax(unsigned V) {
-    unsigned PrevMax = Value.load(std::memory_order_relaxed);
+    unsigned PrevMax = Value;
     // Keep trying to update max until we succeed or another thread produces
     // a bigger max than us.
-    while (V > PrevMax && !Value.compare_exchange_weak(
-                              PrevMax, V, std::memory_order_relaxed)) {
+    if (V > PrevMax) {
+      PrevMax = V;
     }
     init();
   }
 
 protected:
   TrackingStatistic &init() {
-    if (!Initialized.load(std::memory_order_acquire))
+    if (!Initialized)
       RegisterStatistic();
     return *this;
   }

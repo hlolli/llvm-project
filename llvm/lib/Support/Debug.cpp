@@ -23,7 +23,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+
 #include "llvm/Support/Debug.h"
+#if 0
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Signals.h"
@@ -151,15 +153,23 @@ raw_ostream &llvm::dbgs() {
 
 #else
 // Avoid "has no symbols" warning.
+
+#endif
+#endif
+/// EnableDebugBuffering - Turn on signal handler installation.
+///
+
 namespace llvm {
+  bool isCurrentDebugType(const char *DebugType) {
+    return true;
+  }
   /// dbgs - Return errs().
   raw_ostream &dbgs() {
-    return errs();
+    // llvm::raw_ostream int x = nullptr;
+    // return x;
   }
 }
 
-#endif
 
-/// EnableDebugBuffering - Turn on signal handler installation.
-///
 bool llvm::EnableDebugBuffering = false;
+bool llvm::DebugFlag = true;

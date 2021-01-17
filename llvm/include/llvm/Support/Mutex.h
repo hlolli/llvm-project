@@ -26,49 +26,44 @@ namespace llvm
     /// running in multithreaded mode.
     template<bool mt_only>
     class SmartMutex {
-      std::recursive_mutex impl;
       unsigned acquired = 0;
 
     public:
       bool lock() {
-        if (!mt_only || llvm_is_multithreaded()) {
-          impl.lock();
+        ++acquired;
           return true;
-        } else {
-          // Single-threaded debugging code.  This would be racy in
-          // multithreaded mode, but provides not sanity checks in single
-          // threaded mode.
-          ++acquired;
-          return true;
-        }
       }
 
       bool unlock() {
-        if (!mt_only || llvm_is_multithreaded()) {
-          impl.unlock();
-          return true;
-        } else {
           // Single-threaded debugging code.  This would be racy in
           // multithreaded mode, but provides not sanity checks in single
           // threaded mode.
           assert(acquired && "Lock not acquired before release!");
           --acquired;
           return true;
-        }
       }
 
       bool try_lock() {
-        if (!mt_only || llvm_is_multithreaded())
-          return impl.try_lock();
-        else return true;
+        return true;
       }
     };
 
     /// Mutex - A standard, always enforced mutex.
     typedef SmartMutex<false> Mutex;
 
-    template <bool mt_only>
-    using SmartScopedLock = std::lock_guard<SmartMutex<mt_only>>;
+    template<bool mt_only>
+    class SmartScopedLock  {
+      SmartMutex<mt_only>& mtx;
+
+    public:
+      SmartScopedLock(SmartMutex<mt_only>& m) : mtx(m) {
+        mtx.lock();
+      }
+
+      ~SmartScopedLock() {
+        mtx.unlock();
+      }
+    };
 
     typedef SmartScopedLock<false> ScopedLock;
   }

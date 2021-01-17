@@ -32,7 +32,7 @@
 #endif
 
 #include <dirent.h>
-#include <pwd.h>
+// #include <pwd.h>
 #include <sys/file.h>
 
 #ifdef __APPLE__
@@ -71,7 +71,7 @@ extern char **environ;
 #include <sys/types.h>
 #if !defined(__APPLE__) && !defined(__OpenBSD__) && !defined(__FreeBSD__) &&   \
     !defined(__linux__) && !defined(__FreeBSD_kernel__) && !defined(_AIX)
-#include <sys/statvfs.h>
+// #include <sys/statvfs.h>
 #define STATVFS statvfs
 #define FSTATVFS fstatvfs
 #define STATVFS_F_FRSIZE(vfs) vfs.f_frsize
@@ -136,10 +136,10 @@ test_dir(char ret[PATH_MAX], const char *dir, const char *bin)
   // with a null character. Fail if truncation happened.
   if (chars >= PATH_MAX)
     return 1;
-  if (!realpath(fullpath, ret))
-    return 1;
-  if (stat(fullpath, &sb) != 0)
-    return 1;
+  // if (!realpath(fullpath, ret))
+  //   return 1;
+  // if (stat(fullpath, &sb) != 0)
+  //   return 1;
 
   return 0;
 }
@@ -190,127 +190,6 @@ getprogpath(char ret[PATH_MAX], const char *bin)
 /// GetMainExecutable - Return the path to the main executable, given the
 /// value of argv[0] from program startup.
 std::string getMainExecutable(const char *argv0, void *MainAddr) {
-#if defined(__APPLE__)
-  // On OS X the executable path is saved to the stack by dyld. Reading it
-  // from there is much faster than calling dladdr, especially for large
-  // binaries with symbols.
-  char exe_path[PATH_MAX];
-  uint32_t size = sizeof(exe_path);
-  if (_NSGetExecutablePath(exe_path, &size) == 0) {
-    char link_path[PATH_MAX];
-    if (realpath(exe_path, link_path))
-      return link_path;
-  }
-#elif defined(__FreeBSD__)
-  // On FreeBSD if the exec path specified in ELF auxiliary vectors is
-  // preferred, if available.  /proc/curproc/file and the KERN_PROC_PATHNAME
-  // sysctl may not return the desired path if there are multiple hardlinks
-  // to the file.
-  char exe_path[PATH_MAX];
-#if __FreeBSD_version >= 1300057
-  if (elf_aux_info(AT_EXECPATH, exe_path, sizeof(exe_path)) == 0)
-    return exe_path;
-#else
-  // elf_aux_info(AT_EXECPATH, ... is not available in all supported versions,
-  // fall back to finding the ELF auxiliary vectors after the process's
-  // environment.
-  char **p = ::environ;
-  while (*p++ != 0)
-    ;
-  // Iterate through auxiliary vectors for AT_EXECPATH.
-  for (; *(uintptr_t *)p != AT_NULL; p++) {
-    if (*(uintptr_t *)p++ == AT_EXECPATH)
-      return *p;
-  }
-#endif
-  // Fall back to argv[0] if auxiliary vectors are not available.
-  if (getprogpath(exe_path, argv0) != NULL)
-    return exe_path;
-#elif defined(__NetBSD__) || defined(__OpenBSD__) || defined(__minix) ||       \
-    defined(__DragonFly__) || defined(__FreeBSD_kernel__) || defined(_AIX)
-  const char *curproc = "/proc/curproc/file";
-  char exe_path[PATH_MAX];
-  if (sys::fs::exists(curproc)) {
-    ssize_t len = readlink(curproc, exe_path, sizeof(exe_path));
-    if (len > 0) {
-      // Null terminate the string for realpath. readlink never null
-      // terminates its output.
-      len = std::min(len, ssize_t(sizeof(exe_path) - 1));
-      exe_path[len] = '\0';
-      return exe_path;
-    }
-  }
-  // If we don't have procfs mounted, fall back to argv[0]
-  if (getprogpath(exe_path, argv0) != NULL)
-    return exe_path;
-#elif defined(__linux__) || defined(__CYGWIN__) || defined(__gnu_hurd__)
-  char exe_path[PATH_MAX];
-  const char *aPath = "/proc/self/exe";
-  if (sys::fs::exists(aPath)) {
-    // /proc is not always mounted under Linux (chroot for example).
-    ssize_t len = readlink(aPath, exe_path, sizeof(exe_path));
-    if (len < 0)
-      return "";
-
-    // Null terminate the string for realpath. readlink never null
-    // terminates its output.
-    len = std::min(len, ssize_t(sizeof(exe_path) - 1));
-    exe_path[len] = '\0';
-
-    // On Linux, /proc/self/exe always looks through symlinks. However, on
-    // GNU/Hurd, /proc/self/exe is a symlink to the path that was used to start
-    // the program, and not the eventual binary file. Therefore, call realpath
-    // so this behaves the same on all platforms.
-#if _POSIX_VERSION >= 200112 || defined(__GLIBC__)
-    if (char *real_path = realpath(exe_path, NULL)) {
-      std::string ret = std::string(real_path);
-      free(real_path);
-      return ret;
-    }
-#else
-    char real_path[PATH_MAX];
-    if (realpath(exe_path, real_path))
-      return std::string(real_path);
-#endif
-  }
-  // Fall back to the classical detection.
-  if (getprogpath(exe_path, argv0))
-    return exe_path;
-#elif defined(__MVS__)
-  int token = 0;
-  W_PSPROC buf;
-  char exe_path[PS_PATHBLEN];
-  pid_t pid = getpid();
-
-  memset(&buf, 0, sizeof(buf));
-  buf.ps_pathptr = exe_path;
-  buf.ps_pathlen = sizeof(exe_path);
-
-  while (true) {
-    if ((token = w_getpsent(token, &buf, sizeof(buf))) <= 0)
-      break;
-    if (buf.ps_pid != pid)
-      continue;
-    char real_path[PATH_MAX];
-    if (realpath(exe_path, real_path))
-      return std::string(real_path);
-    break;  // Found entry, but realpath failed.
-  }
-#elif defined(HAVE_DLFCN_H) && defined(HAVE_DLADDR)
-  // Use dladdr to get executable path if available.
-  Dl_info DLInfo;
-  int err = dladdr(MainAddr, &DLInfo);
-  if (err == 0)
-    return "";
-
-  // If the filename is a symlink, we need to resolve and return the location of
-  // the actual executable.
-  char link_path[PATH_MAX];
-  if (realpath(DLInfo.dli_fname, link_path))
-    return link_path;
-#else
-#error GetMainExecutable is not implemented on this host yet.
-#endif
   return "";
 }
 
@@ -331,14 +210,14 @@ uint32_t file_status::getLinkCount() const {
 }
 
 ErrorOr<space_info> disk_space(const Twine &Path) {
-  struct STATVFS Vfs;
-  if (::STATVFS(const_cast<char *>(Path.str().c_str()), &Vfs))
-    return std::error_code(errno, std::generic_category());
-  auto FrSize = STATVFS_F_FRSIZE(Vfs);
+  // struct STATVFS Vfs;
+  // if (::STATVFS(const_cast<char *>(Path.str().c_str()), &Vfs))
+  //   return std::error_code(errno, std::generic_category());
+  // auto FrSize = STATVFS_F_FRSIZE(Vfs);
   space_info SpaceInfo;
-  SpaceInfo.capacity = static_cast<uint64_t>(Vfs.f_blocks) * FrSize;
-  SpaceInfo.free = static_cast<uint64_t>(Vfs.f_bfree) * FrSize;
-  SpaceInfo.available = static_cast<uint64_t>(Vfs.f_bavail) * FrSize;
+  SpaceInfo.capacity = (uint64_t) 10000000;
+  SpaceInfo.free = (uint64_t) 10000000;
+  SpaceInfo.available = (uint64_t) 10000000;
   return SpaceInfo;
 }
 
@@ -479,7 +358,7 @@ static bool is_local_impl(struct STATVFS &Vfs) {
 #elif defined(__Fuchsia__)
   // Fuchsia doesn't yet support remote filesystem mounts.
   return true;
-#elif defined(__EMSCRIPTEN__)
+#elif 1
   // Emscripten doesn't currently support remote filesystem mounts.
   return true;
 #elif defined(__HAIKU__)
@@ -534,21 +413,22 @@ static bool is_local_impl(struct STATVFS &Vfs) {
 }
 
 std::error_code is_local(const Twine &Path, bool &Result) {
-  struct STATVFS Vfs;
-  if (::STATVFS(const_cast<char *>(Path.str().c_str()), &Vfs))
-    return std::error_code(errno, std::generic_category());
+  // struct STATVFS Vfs;
+  // if (::STATVFS(const_cast<char *>(Path.str().c_str()), &Vfs))
+  //   return std::error_code(errno, std::generic_category());
 
-  Result = is_local_impl(Vfs);
-  return std::error_code();
+  // Result = is_local_impl(Vfs);
+  return {};
 }
 
 std::error_code is_local(int FD, bool &Result) {
-  struct STATVFS Vfs;
-  if (::FSTATVFS(FD, &Vfs))
-    return std::error_code(errno, std::generic_category());
+  // struct STATVFS Vfs;
+  // if (::FSTATVFS(FD, &Vfs))
+  //   return std::error_code(errno, std::generic_category());
 
-  Result = is_local_impl(Vfs);
-  return std::error_code();
+  // Result = is_local_impl(Vfs);
+  // return std::error_code();
+  return {};
 }
 
 std::error_code rename(const Twine &from, const Twine &to) {
@@ -660,21 +540,21 @@ static void expandTildeExpr(SmallVectorImpl<char> &Path) {
     return;
   }
 
+  return;
   // This is a string of the form ~username/, look up this user's entry in the
   // password database.
-  struct passwd *Entry = nullptr;
-  std::string User = Expr.str();
-  Entry = ::getpwnam(User.c_str());
+  // struct passwd *Entry = nullptr;
+  // std::string User = Expr.str();
+  // Entry = ::getpwnam(User.c_str());
+  // if (!Entry) {
+  //   // Unable to look up the entry, just return back the original path.
+  //   return;
+  // }
 
-  if (!Entry) {
-    // Unable to look up the entry, just return back the original path.
-    return;
-  }
-
-  Storage = Remainder;
-  Path.clear();
-  Path.append(Entry->pw_dir, Entry->pw_dir + strlen(Entry->pw_dir));
-  llvm::sys::path::append(Path, Storage);
+  // Storage = Remainder;
+  // Path.clear();
+  // Path.append(Entry->pw_dir, Entry->pw_dir + strlen(Entry->pw_dir));
+  // llvm::sys::path::append(Path, Storage);
 }
 
 
@@ -754,24 +634,26 @@ std::error_code status(int FD, file_status &Result) {
 unsigned getUmask() {
   // Chose arbitary new mask and reset the umask to the old mask.
   // umask(2) never fails so ignore the return of the second call.
-  unsigned Mask = ::umask(0);
-  (void) ::umask(Mask);
+  unsigned Mask = 0; //::umask(0);
+  // (void) ::umask(Mask);
   return Mask;
 }
 
 std::error_code setPermissions(const Twine &Path, perms Permissions) {
-  SmallString<128> PathStorage;
-  StringRef P = Path.toNullTerminatedStringRef(PathStorage);
+  // SmallString<128> PathStorage;
+  // StringRef P = Path.toNullTerminatedStringRef(PathStorage);
 
-  if (::chmod(P.begin(), Permissions))
-    return std::error_code(errno, std::generic_category());
-  return std::error_code();
+  // if (::chmod(P.begin(), Permissions))
+  //   return std::error_code(errno, std::generic_category());
+  // return std::error_code();
+  return {};
 }
 
 std::error_code setPermissions(int FD, perms Permissions) {
-  if (::fchmod(FD, Permissions))
-    return std::error_code(errno, std::generic_category());
-  return std::error_code();
+  // if (::fchmod(FD, Permissions))
+  //   return std::error_code(errno, std::generic_category());
+  // return std::error_code();
+  return {};
 }
 
 std::error_code setLastAccessAndModificationTime(int FD, TimePoint<> AccessTime,
@@ -1046,8 +928,8 @@ std::error_code openFileForRead(const Twine &Name, int &ResultFD,
     StringRef P = Name.toNullTerminatedStringRef(Storage);
 
     // Use ::realpath to get the real path name
-    if (::realpath(P.begin(), Buffer) != nullptr)
-      RealPath->append(Buffer, Buffer + strlen(Buffer));
+    // if (::realpath(P.begin(), Buffer) != nullptr)
+    //   RealPath->append(Buffer, Buffer + strlen(Buffer));
   }
 #endif
   return std::error_code();
@@ -1101,47 +983,50 @@ Expected<size_t> readNativeFileSlice(file_t FD, MutableArrayRef<char> Buf,
 }
 
 std::error_code tryLockFile(int FD, std::chrono::milliseconds Timeout) {
-  auto Start = std::chrono::steady_clock::now();
-  auto End = Start + Timeout;
-  do {
-    struct flock Lock;
-    memset(&Lock, 0, sizeof(Lock));
-    Lock.l_type = F_WRLCK;
-    Lock.l_whence = SEEK_SET;
-    Lock.l_start = 0;
-    Lock.l_len = 0;
-    if (::fcntl(FD, F_SETLK, &Lock) != -1)
-      return std::error_code();
-    int Error = errno;
-    if (Error != EACCES && Error != EAGAIN)
-      return std::error_code(Error, std::generic_category());
-    usleep(1000);
-  } while (std::chrono::steady_clock::now() < End);
-  return make_error_code(errc::no_lock_available);
+  return {};
+  // auto Start = std::chrono::steady_clock::now();
+  // auto End = Start + Timeout;
+  // do {
+  //   struct flock Lock;
+  //   memset(&Lock, 0, sizeof(Lock));
+  //   Lock.l_type = F_WRLCK;
+  //   Lock.l_whence = SEEK_SET;
+  //   Lock.l_start = 0;
+  //   Lock.l_len = 0;
+  //   if (::fcntl(FD, F_SETLK, &Lock) != -1)
+  //     return std::error_code();
+  //   int Error = errno;
+  //   if (Error != EACCES && Error != EAGAIN)
+  //     return std::error_code(Error, std::generic_category());
+  //   usleep(1000);
+  // } while (std::chrono::steady_clock::now() < End);
+  // return make_error_code(errc::no_lock_available);
 }
 
 std::error_code lockFile(int FD) {
-  struct flock Lock;
-  memset(&Lock, 0, sizeof(Lock));
-  Lock.l_type = F_WRLCK;
-  Lock.l_whence = SEEK_SET;
-  Lock.l_start = 0;
-  Lock.l_len = 0;
-  if (::fcntl(FD, F_SETLKW, &Lock) != -1)
-    return std::error_code();
-  int Error = errno;
-  return std::error_code(Error, std::generic_category());
+  return {};
+  // struct flock Lock;
+  // memset(&Lock, 0, sizeof(Lock));
+  // Lock.l_type = F_WRLCK;
+  // Lock.l_whence = SEEK_SET;
+  // Lock.l_start = 0;
+  // Lock.l_len = 0;
+  // if (::fcntl(FD, F_SETLKW, &Lock) != -1)
+  //   return std::error_code();
+  // int Error = errno;
+  // return std::error_code(Error, std::generic_category());
 }
 
 std::error_code unlockFile(int FD) {
-  struct flock Lock;
-  Lock.l_type = F_UNLCK;
-  Lock.l_whence = SEEK_SET;
-  Lock.l_start = 0;
-  Lock.l_len = 0;
-  if (::fcntl(FD, F_SETLK, &Lock) != -1)
-    return std::error_code();
-  return std::error_code(errno, std::generic_category());
+  return {};
+  // struct flock Lock;
+  // Lock.l_type = F_UNLCK;
+  // Lock.l_whence = SEEK_SET;
+  // Lock.l_start = 0;
+  // Lock.l_len = 0;
+  // if (::fcntl(FD, F_SETLK, &Lock) != -1)
+  //   return std::error_code();
+  // return std::error_code(errno, std::generic_category());
 }
 
 std::error_code closeFile(file_t &F) {
@@ -1205,8 +1090,8 @@ std::error_code real_path(const Twine &path, SmallVectorImpl<char> &dest,
   SmallString<128> Storage;
   StringRef P = path.toNullTerminatedStringRef(Storage);
   char Buffer[PATH_MAX];
-  if (::realpath(P.begin(), Buffer) == nullptr)
-    return std::error_code(errno, std::generic_category());
+  // if (::realpath(P.begin(), Buffer) == nullptr)
+  //   return std::error_code(errno, std::generic_category());
   dest.append(Buffer, Buffer + strlen(Buffer));
   return std::error_code();
 }
@@ -1217,11 +1102,11 @@ namespace path {
 
 bool home_directory(SmallVectorImpl<char> &result) {
   char *RequestedDir = getenv("HOME");
-  if (!RequestedDir) {
-    struct passwd *pw = getpwuid(getuid());
-    if (pw && pw->pw_dir)
-      RequestedDir = pw->pw_dir;
-  }
+  // if (!RequestedDir) {
+  //   struct passwd *pw = getpwuid(getuid());
+  //   if (pw && pw->pw_dir)
+  //     RequestedDir = pw->pw_dir;
+  // }
   if (!RequestedDir)
     return false;
 

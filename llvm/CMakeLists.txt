@@ -69,7 +69,7 @@ endif()
 # LLVM_EXTERNAL_${project}_SOURCE_DIR using LLVM_ALL_PROJECTS
 # This allows an easy way of setting up a build directory for llvm and another
 # one for llvm+clang+... using the same sources.
-set(LLVM_ALL_PROJECTS "clang;clang-tools-extra;compiler-rt;debuginfo-tests;libc;libclc;libcxx;libcxxabi;libunwind;lld;lldb;mlir;openmp;parallel-libs;polly;pstl")
+set(LLVM_ALL_PROJECTS "clang;libc;libclc;libcxx;libcxxabi;lld")
 # The flang project is not yet part of "all" projects (see C++ requirements)
 set(LLVM_EXTRA_PROJECTS "flang")
 # List of all known projects in the mono repo
@@ -364,7 +364,7 @@ option(LLVM_ENABLE_LIBPFM "Use libpfm for performance counters if available." ON
 if (CMAKE_SYSTEM_NAME MATCHES "OS390")
   option(LLVM_ENABLE_THREADS "Use threads if available." OFF)
 else()
-  option(LLVM_ENABLE_THREADS "Use threads if available." ON)
+  # option(LLVM_ENABLE_THREADS "Use threads if available." ON)
 endif()
 
 set(LLVM_ENABLE_ZLIB "ON" CACHE STRING "Use zlib for compression/decompression if available. Can be ON, OFF, or FORCE_ON")

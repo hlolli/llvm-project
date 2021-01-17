@@ -18,7 +18,7 @@
 
 using namespace llvm;
 
-#if LLVM_ENABLE_THREADS
+#if 0
 
 ThreadPool::ThreadPool(ThreadPoolStrategy S)
     : ThreadCount(S.compute_thread_count()) {

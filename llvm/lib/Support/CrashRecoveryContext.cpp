@@ -13,8 +13,9 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/ThreadLocal.h"
-#include <mutex>
+#ifndef BINJI_HACK
 #include <setjmp.h>
+#endif
 
 using namespace llvm;
 
@@ -69,14 +70,11 @@ public:
     assert(!Failed && "Crash recovery context already failed!");
     Failed = true;
 
-    if (CRC->DumpStackAndCleanupOnFailure)
-      sys::CleanupOnSignal(Context);
-
-    CRC->RetCode = RetCode;
-
-    // Jump back to the RunSafely we were called under.
-    if (ValidJumpBuffer)
-      longjmp(JumpBuffer, 1);
+#ifndef BINJI_HACK
+    longjmp(JumpBuffer, 1);
+#else
+    abort();
+#endif
 
     // Otherwise let the caller decide of the outcome of the crash. Currently
     // this occurs when using SEH on Windows with MSVC or clang-cl.

@@ -55,7 +55,7 @@
 #ifndef LLVM_ADT_INTRUSIVEREFCNTPTR_H
 #define LLVM_ADT_INTRUSIVEREFCNTPTR_H
 
-#include <atomic>
+// #include <atomic>
 #include <cassert>
 #include <cstddef>
 #include <memory>
@@ -99,7 +99,7 @@ public:
 
 /// A thread-safe version of \c RefCountedBase.
 template <class Derived> class ThreadSafeRefCountedBase {
-  mutable std::atomic<int> RefCount{0};
+  mutable int RefCount = 0;
 
 protected:
   ThreadSafeRefCountedBase() = default;
@@ -119,14 +119,9 @@ protected:
 #endif
 
 public:
-  void Retain() const { RefCount.fetch_add(1, std::memory_order_relaxed); }
+  void Retain() const {  }
 
-  void Release() const {
-    int NewRefCount = RefCount.fetch_sub(1, std::memory_order_acq_rel) - 1;
-    assert(NewRefCount >= 0 && "Reference count was already zero.");
-    if (NewRefCount == 0)
-      delete static_cast<const Derived *>(this);
-  }
+  void Release() const { }
 };
 
 /// Class you can specialize to provide custom retain/release functionality for
